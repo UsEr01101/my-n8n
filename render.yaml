@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: my-n8n
+    env: docker
+    region: frankfurt
+    plan: free
