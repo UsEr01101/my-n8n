@@ -1,13 +1,27 @@
-# Используем официальный образ n8n (Debian-based)
-FROM n8nio/n8n:latest
+# Используем официальный Debian как базу
+FROM debian:bookworm-slim
 
-# Устанавливаем curl через apt (не apk!)
+# Устанавливаем зависимости
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg \
+        && rm -rf /var/lib/apt/lists/*
 
-# Не меняем пользователя — n8n уже работает от node
-EXPOSE 5678
+# Устанавливаем Node.js (n8n требует Node >= 18)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
 
-# Команда по умолчанию уже задана в базовом образе
-# CMD ["start"] — не нужно дублировать
+# Устанавливаем n8n глобально
+RUN npm install n8n -g
+
+# Создаём директорию для данных (опционально)
+RUN mkdir -p /home/node/.n8n
+
+# Переключаемся на пользователя node (безопасность)
+USER node
+WORKDIR /home/node
+
+# Запускаем n8n
+CMD ["n8n", "start"]
